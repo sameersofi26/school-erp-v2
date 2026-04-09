@@ -46,12 +46,13 @@ font-size:15px;
 }
 
 button{
-padding:10px 15px;
+padding:8px 12px;
 background:#0f172a;
 color:white;
 border:none;
 border-radius:5px;
 cursor:pointer;
+margin:2px;
 }
 
 /* TABLE */
@@ -76,22 +77,18 @@ text-align:left;
 <body>
 
 <script>
-
 if(localStorage.getItem("loggedIn")!="true"){
 window.location.href="login.html";
 }
-
 </script>
-
 
 <div class="header">
 
 <h2>Student Management</h2>
 
-<button onclick="goBack()">Back to Dashboard</button>
+<button onclick="goBack()">Dashboard</button>
 
 </div>
-
 
 <div class="container">
 
@@ -102,7 +99,6 @@ window.location.href="login.html";
 <input id="name" placeholder="Student Name">
 
 <select id="className">
-
 <option>Nursery</option>
 <option>LKG</option>
 <option>UKG</option>
@@ -116,15 +112,12 @@ window.location.href="login.html";
 <option>8</option>
 <option>9</option>
 <option>10</option>
-
 </select>
 
 <select id="section">
-
 <option>A</option>
 <option>B</option>
 <option>C</option>
-
 </select>
 
 <input id="totalFee" placeholder="Total Fee">
@@ -136,7 +129,7 @@ window.location.href="login.html";
 
 <div class="formBox">
 
-<input id="searchBox" placeholder="Search Student" onkeyup="searchStudent()">
+<input id="searchBox" placeholder="Search student" onkeyup="searchStudent()">
 
 </div>
 
@@ -157,9 +150,7 @@ window.location.href="login.html";
 
 </thead>
 
-<tbody id="studentTable">
-
-</tbody>
+<tbody id="studentTable"></tbody>
 
 </table>
 
@@ -168,19 +159,18 @@ window.location.href="login.html";
 
 <script>
 
+/* DATA HELPERS */
+
 function getStudents(){
-
-return JSON.parse(localStorage.getItem("students") || "[]");
-
+return JSON.parse(localStorage.getItem("students")||"[]");
 }
-
 
 function saveStudents(data){
-
 localStorage.setItem("students",JSON.stringify(data));
-
 }
 
+
+/* ADD STUDENT */
 
 function addStudent(){
 
@@ -192,12 +182,9 @@ let section=document.getElementById("section").value;
 
 let totalFee=Number(document.getElementById("totalFee").value);
 
-if(name=="" || totalFee==0){
-
-alert("Enter details properly");
-
+if(!name || !totalFee){
+alert("Enter correct details");
 return;
-
 }
 
 let students=getStudents();
@@ -205,14 +192,11 @@ let students=getStudents();
 students.push({
 
 name,
-
 className,
-
 section,
-
 totalFee,
-
-paid:0
+paid:0,
+history:[]
 
 });
 
@@ -222,6 +206,8 @@ showStudents();
 
 }
 
+
+/* DISPLAY STUDENTS */
 
 function showStudents(){
 
@@ -249,6 +235,10 @@ table.innerHTML+=`
 
 <button onclick="payFee(${index})">Pay</button>
 
+<button onclick="viewHistory(${index})">History</button>
+
+<button onclick="editStudent(${index})">Edit</button>
+
 <button onclick="printReceipt(${index})">Receipt</button>
 
 <button onclick="deleteStudent(${index})">Delete</button>
@@ -264,13 +254,25 @@ table.innerHTML+=`
 }
 
 
+/* PAY FEE */
+
 function payFee(index){
 
 let students=getStudents();
 
 let amount=prompt("Enter payment amount");
 
+if(!amount) return;
+
 students[index].paid+=Number(amount);
+
+students[index].history.push({
+
+date:new Date().toLocaleDateString(),
+
+amount:Number(amount)
+
+});
 
 saveStudents(students);
 
@@ -278,6 +280,79 @@ showStudents();
 
 }
 
+
+/* VIEW HISTORY */
+
+function viewHistory(index){
+
+let students=getStudents();
+
+let history=students[index].history;
+
+if(history.length==0){
+
+alert("No payments yet");
+
+return;
+
+}
+
+let text="Payment History\n\n";
+
+history.forEach(h=>{
+
+text+=`${h.date} : ₹${h.amount}\n`;
+
+});
+
+alert(text);
+
+}
+
+
+/* EDIT STUDENT */
+
+function editStudent(index){
+
+let students=getStudents();
+
+let s=students[index];
+
+let newName=prompt("Edit name",s.name);
+
+let newFee=prompt("Edit total fee",s.totalFee);
+
+if(newName) s.name=newName;
+
+if(newFee) s.totalFee=Number(newFee);
+
+saveStudents(students);
+
+showStudents();
+
+}
+
+
+/* DELETE STUDENT */
+
+function deleteStudent(index){
+
+if(confirm("Delete student?")){
+
+let students=getStudents();
+
+students.splice(index,1);
+
+saveStudents(students);
+
+showStudents();
+
+}
+
+}
+
+
+/* RECEIPT */
 
 function printReceipt(index){
 
@@ -326,22 +401,7 @@ win.print();
 }
 
 
-function deleteStudent(index){
-
-if(confirm("Delete student?")){
-
-let students=getStudents();
-
-students.splice(index,1);
-
-saveStudents(students);
-
-showStudents();
-
-}
-
-}
-
+/* SEARCH */
 
 function searchStudent(){
 
@@ -351,16 +411,14 @@ let rows=document.querySelectorAll("#studentTable tr");
 
 rows.forEach(row=>{
 
-row.style.display=row.innerText.toLowerCase().includes(value)
-
-? ""
-
-: "none";
+row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
 
 });
 
 }
 
+
+/* BACK BUTTON */
 
 function goBack(){
 
