@@ -1,0 +1,16 @@
+{
+  "name": "Swathanthra Bharathi School ERP",
+  "short_name": "School ERP",
+  "start_url": "login.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
