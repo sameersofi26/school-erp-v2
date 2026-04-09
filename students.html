@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Students</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f9;
+}
+
+/* HEADER */
+
+.header{
+background:#0f172a;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+}
+
+/* CONTAINER */
+
+.container{
+padding:25px;
+}
+
+/* FORM */
+
+.formBox{
+background:white;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+box-shadow:0px 4px 10px rgba(0,0,0,0.1);
+}
+
+input,select{
+padding:10px;
+margin:5px;
+font-size:15px;
+}
+
+button{
+padding:10px 15px;
+background:#0f172a;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+/* TABLE */
+
+table{
+width:100%;
+background:white;
+border-collapse:collapse;
+box-shadow:0px 4px 10px rgba(0,0,0,0.1);
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #ddd;
+text-align:left;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<script>
+
+if(localStorage.getItem("loggedIn")!="true"){
+window.location.href="login.html";
+}
+
+</script>
+
+
+<div class="header">
+
+<h2>Student Management</h2>
+
+<button onclick="goBack()">Back to Dashboard</button>
+
+</div>
+
+
+<div class="container">
+
+<div class="formBox">
+
+<h3>Add Student</h3>
+
+<input id="name" placeholder="Student Name">
+
+<select id="className">
+
+<option>Nursery</option>
+<option>LKG</option>
+<option>UKG</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+
+</select>
+
+<select id="section">
+
+<option>A</option>
+<option>B</option>
+<option>C</option>
+
+</select>
+
+<input id="totalFee" placeholder="Total Fee">
+
+<button onclick="addStudent()">Add Student</button>
+
+</div>
+
+
+<div class="formBox">
+
+<input id="searchBox" placeholder="Search Student" onkeyup="searchStudent()">
+
+</div>
+
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+<th>Class</th>
+<th>Paid</th>
+<th>Pending</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="studentTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+function getStudents(){
+
+return JSON.parse(localStorage.getItem("students") || "[]");
+
+}
+
+
+function saveStudents(data){
+
+localStorage.setItem("students",JSON.stringify(data));
+
+}
+
+
+function addStudent(){
+
+let name=document.getElementById("name").value;
+
+let className=document.getElementById("className").value;
+
+let section=document.getElementById("section").value;
+
+let totalFee=Number(document.getElementById("totalFee").value);
+
+if(name=="" || totalFee==0){
+
+alert("Enter details properly");
+
+return;
+
+}
+
+let students=getStudents();
+
+students.push({
+
+name,
+
+className,
+
+section,
+
+totalFee,
+
+paid:0
+
+});
+
+saveStudents(students);
+
+showStudents();
+
+}
+
+
+function showStudents(){
+
+let students=getStudents();
+
+let table=document.getElementById("studentTable");
+
+table.innerHTML="";
+
+students.forEach((s,index)=>{
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${s.name}</td>
+
+<td>${s.className}-${s.section}</td>
+
+<td>₹${s.paid}</td>
+
+<td>₹${s.totalFee-s.paid}</td>
+
+<td>
+
+<button onclick="payFee(${index})">Pay</button>
+
+<button onclick="printReceipt(${index})">Receipt</button>
+
+<button onclick="deleteStudent(${index})">Delete</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+
+function payFee(index){
+
+let students=getStudents();
+
+let amount=prompt("Enter payment amount");
+
+students[index].paid+=Number(amount);
+
+saveStudents(students);
+
+showStudents();
+
+}
+
+
+function printReceipt(index){
+
+let students=getStudents();
+
+let s=students[index];
+
+let today=new Date().toLocaleDateString();
+
+let receiptNo="SB-"+Date.now();
+
+let win=window.open();
+
+win.document.write(`
+
+<h2>SWATHANTHRA BHARATHI SCHOOL</h2>
+
+<hr>
+
+Receipt No: ${receiptNo}<br>
+
+Date: ${today}<br><br>
+
+Name: ${s.name}<br>
+
+Class: ${s.className}-${s.section}<br>
+
+Total Fee: ₹${s.totalFee}<br>
+
+Paid: ₹${s.paid}<br>
+
+Pending: ₹${s.totalFee-s.paid}<br>
+
+<br><br>
+
+Parent Signature ____________
+
+<br><br>
+
+Principal Signature ____________
+
+`);
+
+win.print();
+
+}
+
+
+function deleteStudent(index){
+
+if(confirm("Delete student?")){
+
+let students=getStudents();
+
+students.splice(index,1);
+
+saveStudents(students);
+
+showStudents();
+
+}
+
+}
+
+
+function searchStudent(){
+
+let value=document.getElementById("searchBox").value.toLowerCase();
+
+let rows=document.querySelectorAll("#studentTable tr");
+
+rows.forEach(row=>{
+
+row.style.display=row.innerText.toLowerCase().includes(value)
+
+? ""
+
+: "none";
+
+});
+
+}
+
+
+function goBack(){
+
+window.location.href="index.html";
+
+}
+
+
+showStudents();
+
+</script>
+
+</body>
+</html>
